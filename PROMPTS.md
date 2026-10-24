@@ -319,3 +319,71 @@ Constraints:
 - Do not create a login route, JWT utility, schemas, services, or seed data yet.
 - Keep the tests concise, typed, readable, and compatible with ruff.
 - Do not run git commands and do not create commits.
+
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: Phase 3, Part 4 — implement customer login and JWT access-token creation only, so the existing login tests pass.
+
+First inspect the existing project. Keep the current registration behavior working and preserve its routes, database setup, models, and test fixture design.
+
+Implement the following:
+
+1. Configuration
+- Update backend/app/core/config.py and backend/.env.example as necessary.
+- Add settings for:
+  - SECRET_KEY
+  - ALGORITHM, with default value "HS256"
+  - ACCESS_TOKEN_EXPIRE_MINUTES, with a sensible default such as 30
+- SECRET_KEY must come from the environment in real use. The .env.example must contain a clearly fake development placeholder, never a real secret.
+- Preserve existing settings and naming conventions.
+
+2. Security utilities
+- Update backend/app/core/security.py.
+- Keep the existing password hashing function unchanged in behavior.
+- Add a function to verify a plain password against its stored hash using pwdlib.
+- Add a function that creates a signed JWT access token using python-jose.
+- The token must include:
+  - "sub": the user id as a string
+  - "role": the user role
+  - "exp": an expiry timestamp based on ACCESS_TOKEN_EXPIRE_MINUTES
+- Do not log tokens, secrets, passwords, or password hashes.
+
+3. Request and response schemas
+- Update backend/app/schemas/auth.py.
+- Add a login request schema containing:
+  - email: EmailStr
+  - password: string with minimum length 8
+- Add an access-token response schema containing:
+  - access_token: str
+  - token_type: str
+
+4. Authentication service
+- Update or extend backend/app/services/auth_service.py.
+- Add a login function that:
+  - looks up the user by email;
+  - verifies the supplied password against password_hash;
+  - returns a JWT access token on success;
+  - raises HTTPException with status 401 and exactly this detail for either unknown email or invalid password:
+    "Incorrect email or password"
+- Do not reveal whether an email exists.
+- Do not return User ORM objects, hashes, or passwords.
+
+5. Route
+- Update backend/app/api/routes/auth.py.
+- Add POST /api/auth/login.
+- It must accept JSON matching the login request schema.
+- It must return HTTP 200 JSON matching the token response schema:
+  {
+    "access_token": "<non-empty JWT string>",
+    "token_type": "bearer"
+  }
+
+Constraints:
+- Do not change existing test files.
+- Do not modify database models or Alembic migrations.
+- Do not add protected-route logic, role checks, vehicle endpoints, frontend work, or admin seed data yet.
+- Do not run git commands or create a commit.
+- Keep formatting compatible with ruff.
+
+When complete, report the files changed and any commands I should run.

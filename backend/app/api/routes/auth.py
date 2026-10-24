@@ -4,8 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.schemas.auth import UserRegister, UserResponse
-from app.services.auth_service import EmailAlreadyExistsError, register_customer
+from app.schemas.auth import TokenResponse, UserLogin, UserRegister, UserResponse
+from app.services.auth_service import (
+    EmailAlreadyExistsError,
+    login_user,
+    register_customer,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -29,3 +33,16 @@ def register(
         ) from exc
     return user
 
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+)
+def login(
+    credentials: UserLogin,
+    db: Annotated[Session, Depends(get_db)],
+) -> TokenResponse:
+    """Authenticate customer credentials and return a signed JWT access token."""
+    access_token = login_user(db=db, credentials=credentials)
+    return TokenResponse(access_token=access_token, token_type="bearer")

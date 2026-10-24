@@ -1,10 +1,11 @@
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.security import hash_password
+from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
-from app.schemas.auth import UserRegister
+from app.schemas.auth import UserLogin, UserRegister
 
 
 class EmailAlreadyExistsError(Exception):
@@ -34,3 +35,20 @@ def register_customer(db: Session, user_data: UserRegister) -> User:
     db.refresh(user)
     return user
 
+
+def login_user(db: Session, credentials: UserLogin) -> str:
+    """Authenticate user credentials and return a signed JWT access token."""
+    stmt = select(User).where(User.email == credentials.email)
+    user = db.scalar(stmt)
+
+    if user is None or not verify_password(credentials.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+
+    return create_access_token(user_id=user.id, role=user.role)
+
+
+# Aliases for convenience
+login_customer = login_user

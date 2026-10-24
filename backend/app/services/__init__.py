@@ -1,4 +1,13 @@
-from app.services.auth_service import EmailAlreadyExistsError, register_customer
+from app.services.auth_service import (
+    EmailAlreadyExistsError,
+    login_customer,
+    login_user,
+    register_customer,
+)
 
-__all__ = ["EmailAlreadyExistsError", "register_customer"]
-
+__all__ = [
+    "EmailAlreadyExistsError",
+    "login_customer",
+    "login_user",
+    "register_customer",
+]
