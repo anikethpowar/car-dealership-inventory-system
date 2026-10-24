@@ -53,6 +53,72 @@ Constraints:
 
 
 
+You are helping build Phase 2 Part 1 of a Car Dealership Inventory System.
+
+Project root: ~/Incubyte
+Backend root: ~/Incubyte/backend
+
+Existing backend foundation:
+- app/core/config.py
+- app/db/database.py
+- SQLAlchemy Base already exists in app.db.database
+- SQLite is already configured
+- No database tables or Alembic migrations exist yet.
+
+Task: create only the SQLAlchemy data models. Do not create API routes, authentication endpoints, Pydantic schemas, Alembic migrations, frontend changes, tests, or Git commits.
+
+Create these files:
+
+1. backend/app/models/user.py
+Create a User SQLAlchemy model using modern SQLAlchemy 2 type annotations.
+
+Table name: users
+
+Fields:
+- id: integer primary key
+- email: string, required, unique, indexed
+- password_hash: string, required
+- role: string, required, default "customer"
+- created_at: timezone-aware datetime, required, server default current timestamp
+- updated_at: timezone-aware datetime, required, server default current timestamp and updated automatically when the row changes
+
+Use a CheckConstraint so role can only be "customer" or "admin".
+
+2. backend/app/models/vehicle.py
+Create a Vehicle SQLAlchemy model using modern SQLAlchemy 2 type annotations.
+
+Table name: vehicles
+
+Fields:
+- id: integer primary key
+- make: string, required, indexed
+- model: string, required, indexed
+- category: string, required, indexed
+- price: Numeric decimal with 10 total digits and 2 decimal places, required
+- quantity: integer, required, default 0
+- created_at: timezone-aware datetime, required, server default current timestamp
+- updated_at: timezone-aware datetime, required, server default current timestamp and updated automatically when the row changes
+
+Use database CheckConstraints:
+- price must be greater than 0
+- quantity must be greater than or equal to 0
+
+3. backend/app/models/__init__.py
+Import and expose both User and Vehicle so Alembic can discover their metadata later.
+
+Constraints:
+- Use app.db.database.Base.
+- Do not call Base.metadata.create_all.
+- Do not create an in-memory database.
+- Do not add relationships because users and vehicles do not need one for this kata.
+- Use readable names and minimal helpful comments.
+- Do not modify existing database configuration.
+- Do not make Git commits.
+
+After completing the files, explain what was created and give commands to verify imports and run Ruff.
+
+
+
 You are helping build Phase 2 Part 2 of a Car Dealership Inventory System.
 
 Project root: ~/Incubyte
