@@ -1,465 +1,488 @@
-🚗 Car Dealership Inventory System
+<div align="center">
 
-<p align="center">
-  <strong>A full-stack vehicle inventory application for customers and dealership administrators.</strong><br />
-  Browse, filter, purchase, restock, and manage vehicles through a responsive web interface.
-</p>
+<img src="docs/assets/banner.svg" alt="Car Dealership Inventory System" width="100%" />
 
-<p align="center">
-  <img alt="FastAPI" src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" />
-  <img alt="React" src="https://img.shields.io/badge/UI-React-149eca?logo=react&logoColor=white" />
-  <img alt="Database" src="https://img.shields.io/badge/Database-SQLite-003b57?logo=sqlite&logoColor=white" />
-  <img alt="Tests" src="https://img.shields.io/badge/Backend%20tests-28%20passing-2ea44f" />
-  <img alt="License" src="https://img.shields.io/badge/License-See%20LICENSE-6b7280" />
-</p>
+<br />
 
-Start here: Follow Run locally to get the app running in two terminals. No deployment is required; this project is ready to run locally for coursework review.
+**A full-stack vehicle inventory platform for customers and dealership administrators.**
+Browse, filter, purchase, restock, and manage vehicles through a fast, responsive web interface.
 
-✨ What this project does
+<br />
 
-For customers
+<img alt="FastAPI" src="https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
+<img alt="React" src="https://img.shields.io/badge/UI-React_19-149eca?style=for-the-badge&logo=react&logoColor=white" />
+<img alt="SQLite" src="https://img.shields.io/badge/Database-SQLite-003b57?style=for-the-badge&logo=sqlite&logoColor=white" />
+<img alt="Tailwind" src="https://img.shields.io/badge/Tailwind-v4-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+<br />
+<img alt="Tests" src="https://img.shields.io/badge/Backend_tests-28_passing-2ea44f?style=flat-square&logo=pytest&logoColor=white" />
+<img alt="Ruff" src="https://img.shields.io/badge/Ruff-clean-2ea44f?style=flat-square" />
+<img alt="ESLint" src="https://img.shields.io/badge/ESLint-clean-2ea44f?style=flat-square&logo=eslint&logoColor=white" />
+<img alt="License" src="https://img.shields.io/badge/License-See_LICENSE-6b7280?style=flat-square" />
 
-For administrators
+<br /><br />
 
-Create an account and sign in securely
+[**Quick Start**](#-quick-start) &nbsp;•&nbsp;
+[**Features**](#-features) &nbsp;•&nbsp;
+[**Architecture**](#-architecture) &nbsp;•&nbsp;
+[**Step-by-Step Setup**](#-step-by-step-setup) &nbsp;•&nbsp;
+[**Screenshots**](#-screenshots) &nbsp;•&nbsp;
+[**API**](#-api-reference) &nbsp;•&nbsp;
+[**Security**](#-security)
 
-Sign in to a protected admin workspace
+</div>
 
-Browse vehicles with price and stock status
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-Add, edit, restock, and delete inventory
+## ⚡ Quick Start
 
-Search by make, model, or category
+Already have **Git**, **Python 3.11+**, and **Node.js 20+**? You can be running in about two minutes. You need **two terminals**: one for the backend, one for the frontend.
 
-See inventory update immediately after actions
+<table>
+<tr>
+<td width="50%" valign="top">
 
-Filter by make, model, category, price, and stock
+**🖥️ Terminal 1: Backend**
 
-Use the same secure API as the customer app
-
-Purchase one vehicle unit at a time
-
-
-
-The backend is the source of truth for every permission and stock update. Hiding an admin button in the UI never grants access: the API enforces the role checks.
-
-🧭 How the app fits together
-
-flowchart LR
-    C[Customer or Admin] --> UI[React + Vite + Tailwind]
-    UI -->|Axios HTTP requests| API[FastAPI API]
-    API -->|JWT authentication\nrole checks| S[Services]
-    S --> ORM[SQLAlchemy]
-    ORM --> DB[(SQLite database)]
-    M[Alembic migrations] --> DB
-
-The important flow
-
-A user signs in on the React website.
-
-FastAPI returns a JWT access token.
-
-The browser keeps the token only for the current session using sessionStorage.
-
-Axios adds that token to protected API requests.
-
-FastAPI checks the token and the user role from the database before allowing sensitive actions.
-
-SQLAlchemy safely reads or changes the persistent SQLite inventory.
-
-🛠 Technology
-
-Area
-
-Tools used
-
-Backend
-
-FastAPI, SQLAlchemy 2, Alembic, Pydantic v2
-
-Security
-
-JWT (python-jose), Argon2 password hashing (pwdlib)
-
-Database
-
-SQLite
-
-Frontend
-
-React 19, Vite, React Router, Tailwind CSS v4, Axios
-
-Quality
-
-Pytest, Ruff, ESLint
-
-📁 Project map
-
-car-dealership-inventory-system/
-├── backend/                 # FastAPI application, migrations, tests, and seed script
-│   ├── app/                 # Routes, models, schemas, services, security
-│   ├── alembic/             # Database migrations
-│   ├── scripts/             # Development helpers, including seed_admin.py
-│   └── tests/               # Auth, role, inventory, and purchase tests
-├── frontend/                # React + Vite + Tailwind single-page application
-│   └── src/                 # API client, auth state, pages, and reusable components
-├── docs/                    # Test evidence and screenshots
-├── PROMPTS.md               # Raw AI prompt evidence
-└── README.md                # You are here
-
-✅ Requirements
-
-Install these once before starting:
-
-Requirement
-
-Recommended version
-
-Check it with
-
-Git
-
-Current version
-
-git --version
-
-Python
-
-Python 3.12 (3.11+ should work)
-
-python3 --version
-
-Node.js
-
-Node 22 (Node 20+ should work)
-
-node --version
-
-npm
-
-npm 10+
-
-npm --version
-
-Linux Mint note: Keep the backend and frontend running in separate terminal windows. The frontend alone cannot register or log in users; it needs the FastAPI backend running at the same time.
-
-🚀 Run locally, step by step
-
-1. Clone the project
-
+```bash
 git clone https://github.com/anikethpowar/car-dealership-inventory-system.git
 cd car-dealership-inventory-system
-
-2. Start the backend — Terminal 1
-
-Create and activate a virtual environment from the project root:
 
 python3 -m venv venv
 source venv/bin/activate
 
-Install backend packages:
-
 cd backend
 python -m pip install -r requirements.txt
-
-Create your local configuration file and database tables:
-
 cp .env.example .env
 python -m alembic upgrade head
-
-Create the local demonstration administrator:
-
 python -m scripts.seed_admin
-
-Start FastAPI and leave this terminal running:
-
 uvicorn app.main:app --reload
+```
 
-You should see FastAPI running at http://127.0.0.1:8000.
+</td>
+<td width="50%" valign="top">
 
-3. Start the frontend — Terminal 2
+**🌐 Terminal 2: Frontend**
 
-Open a new terminal window. From the repository root, run:
+```bash
+cd car-dealership-inventory-system/frontend
 
-cd frontend
 npm ci
 cp .env.example .env
 npm run dev
+```
 
-Open the address Vite prints, normally http://localhost:5173.
+Then open **http://localhost:5173** and sign in:
 
-4. Sign in and explore
+| | |
+|---|---|
+| **Email** | `admin@example.com` |
+| **Password** | `AdminPass123!` |
 
-Use the seeded development administrator account:
+</td>
+</tr>
+</table>
 
-Field
+> [!NOTE]
+> Need more detail, Windows commands, or help with an error? Jump to the [**Step-by-Step Setup**](#-step-by-step-setup) and [**Troubleshooting**](#-troubleshooting).
 
-Value
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-Email
+## ✨ Features
 
-admin@example.com
+<table>
+<tr>
+<td width="50%" valign="top">
 
-Password
+### 🛒 For Customers
 
-AdminPass123!
+- 🔐 Create an account and sign in securely
+- 🚘 Browse vehicles with price and stock status
+- 🔎 Search by make, model, or category
+- 🎛️ Filter by make, model, category, price, and stock
+- 💳 Purchase one vehicle unit at a time
+- ⚡ See stock refresh immediately after every action
 
-Development only: These are intentionally public demo credentials. Never use default credentials in a production deployment.
+</td>
+<td width="50%" valign="top">
 
-Or choose Register in the app to make a normal customer account. Customer accounts cannot become administrators through the browser.
+### 🛠️ For Administrators
 
-🔗 Useful local links
+- 🔒 Sign in to a protected admin workspace
+- ➕ Add new vehicles to the inventory
+- ✏️ Edit vehicle details
+- 📦 Restock units
+- 🗑️ Delete vehicles
+- 🧩 Same secure API as the customer app
 
-Resource
+</td>
+</tr>
+</table>
 
-Link
+> [!IMPORTANT]
+> **The backend is the source of truth for every permission and stock update.** Hiding an admin button in the UI never grants access, because the API enforces role checks on every request.
 
-React application
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-http://localhost:5173
+## 🧭 Architecture
 
-API health check
+<div align="center">
+<img src="docs/assets/architecture.svg" alt="Architecture diagram: browser to React UI to FastAPI to Services to SQLAlchemy to SQLite, with Alembic migrations" width="100%" />
+</div>
 
-http://127.0.0.1:8000/api/health
+### 🔁 The sign-in and purchase flow
 
-Interactive API documentation
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant R as React UI
+    participant F as FastAPI
+    participant D as SQLite
 
-http://127.0.0.1:8000/docs
+    U->>R: Enter email and password
+    R->>F: POST /api/auth/login
+    F->>D: Verify Argon2 password hash
+    F-->>R: JWT access token
+    Note over R: Token kept in sessionStorage only
+    U->>R: Click "Purchase"
+    R->>F: POST /api/vehicles/{id}/purchase<br/>Authorization: Bearer token
+    F->>F: Validate token and role
+    F->>D: Atomic stock decrement (only if quantity > 0)
+    D-->>F: Updated vehicle
+    F-->>R: Success + authoritative stock
+    R-->>U: Refreshed inventory
+```
 
-Alternative API documentation
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-http://127.0.0.1:8000/redoc
+## 🛠 Tech Stack
 
-🧪 Verify the project
+| Area | Tools |
+|:--|:--|
+| ⚙️ **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white&style=flat-square) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy_2-d71f00?style=flat-square) ![Alembic](https://img.shields.io/badge/Alembic-6b7280?style=flat-square) ![Pydantic](https://img.shields.io/badge/Pydantic_v2-e92063?logo=pydantic&logoColor=white&style=flat-square) |
+| 🔐 **Security** | ![JWT](https://img.shields.io/badge/JWT_(python--jose)-000000?logo=jsonwebtokens&logoColor=white&style=flat-square) ![Argon2](https://img.shields.io/badge/Argon2_(pwdlib)-7c3aed?style=flat-square) |
+| 🗄️ **Database** | ![SQLite](https://img.shields.io/badge/SQLite-003b57?logo=sqlite&logoColor=white&style=flat-square) |
+| 🎨 **Frontend** | ![React](https://img.shields.io/badge/React_19-149eca?logo=react&logoColor=white&style=flat-square) ![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white&style=flat-square) ![React Router](https://img.shields.io/badge/React_Router-ca4245?logo=reactrouter&logoColor=white&style=flat-square) ![Tailwind](https://img.shields.io/badge/Tailwind_v4-38bdf8?logo=tailwindcss&logoColor=white&style=flat-square) ![Axios](https://img.shields.io/badge/Axios-5a29e4?logo=axios&logoColor=white&style=flat-square) |
+| ✅ **Quality** | ![Pytest](https://img.shields.io/badge/Pytest-0a9edc?logo=pytest&logoColor=white&style=flat-square) ![Ruff](https://img.shields.io/badge/Ruff-d7ff64?logo=ruff&logoColor=black&style=flat-square) ![ESLint](https://img.shields.io/badge/ESLint-4b32c3?logo=eslint&logoColor=white&style=flat-square) |
 
-Run these checks before submitting or after making changes.
+<details>
+<summary><b>📁 Project structure</b></summary>
+<br />
 
-Backend checks
+```text
+car-dealership-inventory-system/
+├── backend/                 # FastAPI application, migrations, tests, seed script
+│   ├── app/                 # Routes, models, schemas, services, security
+│   ├── alembic/             # Database migrations
+│   ├── scripts/             # Dev helpers, including seed_admin.py
+│   └── tests/               # Auth, role, inventory, and purchase tests
+├── frontend/                # React + Vite + Tailwind single-page application
+│   └── src/                 # API client, auth state, pages, reusable components
+├── docs/                    # Test evidence, screenshots, and README assets
+├── PROMPTS.md               # Raw AI prompt evidence
+└── README.md                # You are here
+```
 
+</details>
+
+<img src="docs/assets/divider.svg" width="100%" alt="" />
+
+## 🚀 Step-by-Step Setup
+
+### 1️⃣ Requirements
+
+Install these once. Each row shows how to check that it's already on your machine.
+
+| Tool | Recommended | Minimum | Check with | Download |
+|:--|:--|:--|:--|:--|
+| **Git** | Latest | any recent | `git --version` | [git-scm.com](https://git-scm.com/downloads) |
+| **Python** | 3.12 | 3.11 | `python3 --version` | [python.org](https://www.python.org/downloads/) |
+| **Node.js** | 22 | 20 | `node --version` | [nodejs.org](https://nodejs.org/) |
+| **npm** | 10+ | 10 | `npm --version` | *(comes with Node.js)* |
+
+> [!TIP]
+> **Two terminals, always.** The frontend alone can't register or log in users. It needs the FastAPI backend running at the same time. Keep both windows open while you use the app.
+
+---
+
+### 2️⃣ Get the code
+
+```bash
+git clone https://github.com/anikethpowar/car-dealership-inventory-system.git
+cd car-dealership-inventory-system
+```
+
+---
+
+### 3️⃣ Start the backend 🖥️ *(Terminal 1)*
+
+**a) Create and activate a virtual environment** from the project root:
+
+<details open>
+<summary><b>🐧 Linux / 🍎 macOS</b></summary>
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+</details>
+
+<details>
+<summary><b>🪟 Windows (PowerShell)</b></summary>
+
+```powershell
+python -m venv venv
+venv\Scripts\Activate.ps1
+```
+
+</details>
+
+Your prompt should now start with `(venv)`.
+
+**b) Install the backend packages:**
+
+```bash
+cd backend
+python -m pip install -r requirements.txt
+```
+
+**c) Create your local config and database tables:**
+
+```bash
+cp .env.example .env              # Windows: copy .env.example .env
+python -m alembic upgrade head
+```
+
+**d) Create the demo administrator:**
+
+```bash
+python -m scripts.seed_admin
+```
+
+**e) Start the API and leave this terminal running:**
+
+```bash
+uvicorn app.main:app --reload
+```
+
+✅ **You should see** the server start on `http://127.0.0.1:8000`. Open [`/api/health`](http://127.0.0.1:8000/api/health) in a browser to confirm it's alive.
+
+---
+
+### 4️⃣ Start the frontend 🌐 *(Terminal 2)*
+
+Open a **new** terminal window. From the repository root:
+
+```bash
+cd frontend
+npm ci
+cp .env.example .env              # Windows: copy .env.example .env
+npm run dev
+```
+
+✅ **You should see** Vite print a local address, normally **http://localhost:5173**. Open it.
+
+---
+
+### 5️⃣ Sign in and explore 🎉
+
+| Field | Value |
+|:--|:--|
+| 📧 **Email** | `admin@example.com` |
+| 🔑 **Password** | `AdminPass123!` |
+
+Or click **Register** to create a regular customer account.
+
+> [!WARNING]
+> These are intentionally public **development-only** credentials. Never use default credentials in a production deployment. Customer accounts cannot become administrators through the browser.
+
+---
+
+### 🔗 Useful local links
+
+| Resource | Link |
+|:--|:--|
+| 🎨 React application | http://localhost:5173 |
+| 💚 API health check | http://127.0.0.1:8000/api/health |
+| 📘 Interactive API docs (Swagger) | http://127.0.0.1:8000/docs |
+| 📕 Alternative API docs (ReDoc) | http://127.0.0.1:8000/redoc |
+
+<img src="docs/assets/divider.svg" width="100%" alt="" />
+
+## 🧪 Verify the Project
+
+Run these after making changes, or before submitting.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Backend**
+
+```bash
 cd backend
 python -m pytest tests -q
 python -m ruff check app tests scripts
 python -m alembic current
+```
 
-Frontend checks
+</td>
+<td width="50%" valign="top">
 
+**Frontend**
+
+```bash
 cd frontend
 npm run lint
 npm run build
+```
 
-Current verified result: 28 backend tests passing, Ruff clean, ESLint clean, and a successful Vite production build.
+</td>
+</tr>
+</table>
 
-For the complete manual checklist, results, and known third-party warnings, see docs/TESTING.md.
+**Current verified result:** ✅ 28 backend tests passing · ✅ Ruff clean · ✅ ESLint clean · ✅ Vite production build succeeds.
 
-📸 Application walkthrough
+For the full manual checklist, results, and known third-party warnings, see [`docs/TESTING.md`](docs/TESTING.md).
 
-<p align="center">
-  <img src="docs/screenshots/customer-dashboard.png" alt="Customer dashboard with filters and a vehicle card" width="48%" />
-  <img src="docs/screenshots/customer-purchase-success.png" alt="Customer purchase success and refreshed stock" width="48%" />
-</p>
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-<p align="center"><em>Customer browsing, search/filter controls, and an authoritative stock refresh after purchase.</em></p>
+## 📸 Screenshots
 
-<p align="center">
-  <img src="docs/screenshots/admin-inventory.png" alt="Administrator inventory management interface" width="70%" />
-</p>
+<div align="center">
 
-<p align="center"><em>Admin inventory management: add, edit, restock, and delete actions.</em></p>
+<img src="docs/screenshots/customer-dashboard.png" alt="Customer dashboard with filters and a vehicle card" width="48%" />
+<img src="docs/screenshots/customer-purchase-success.png" alt="Customer purchase success and refreshed stock" width="48%" />
 
-<p align="center">
-  <img src="docs/screenshots/mobile-dashboard.png" alt="Responsive customer dashboard at mobile width" width="32%" />
-</p>
+<sub><b>Customer experience:</b> browsing, search and filter controls, and an authoritative stock refresh after purchase.</sub>
 
-<p align="center"><em>Mobile-friendly responsive customer dashboard.</em></p>
+<br /><br />
 
-🔌 API at a glance
+<img src="docs/screenshots/admin-inventory.png" alt="Administrator inventory management interface" width="70%" />
+
+<sub><b>Admin workspace:</b> add, edit, restock, and delete actions.</sub>
+
+<br /><br />
+
+<img src="docs/screenshots/mobile-dashboard.png" alt="Responsive customer dashboard at mobile width" width="32%" />
+
+<sub><b>Responsive by design:</b> the customer dashboard at mobile width.</sub>
+
+</div>
+
+<img src="docs/assets/divider.svg" width="100%" alt="" />
+
+## 🔌 API Reference
+
+Full interactive docs are available at [`/docs`](http://127.0.0.1:8000/docs) once the backend is running.
 
 <details>
-<summary><strong>Authentication and account routes</strong></summary>
+<summary><b>🔐 Authentication and account routes</b></summary>
+<br />
 
-Method
-
-Route
-
-Access
-
-Purpose
-
-GET
-
-/api/health
-
-Public
-
-Check server and database connectivity
-
-POST
-
-/api/auth/register
-
-Public
-
-Register a customer account
-
-POST
-
-/api/auth/login
-
-Public
-
-Receive a JWT access token
-
-GET
-
-/api/auth/me
-
-Signed in
-
-View current user profile and role
-
-GET
-
-/api/admin/me
-
-Admin
-
-Verify administrator access
+| Method | Route | Access | Purpose |
+|:--:|:--|:--:|:--|
+| ![GET](https://img.shields.io/badge/GET-22c55e?style=flat-square) | `/api/health` | 🌍 Public | Check server and database connectivity |
+| ![POST](https://img.shields.io/badge/POST-3b82f6?style=flat-square) | `/api/auth/register` | 🌍 Public | Register a customer account |
+| ![POST](https://img.shields.io/badge/POST-3b82f6?style=flat-square) | `/api/auth/login` | 🌍 Public | Receive a JWT access token |
+| ![GET](https://img.shields.io/badge/GET-22c55e?style=flat-square) | `/api/auth/me` | 👤 Signed in | View current user profile and role |
+| ![GET](https://img.shields.io/badge/GET-22c55e?style=flat-square) | `/api/admin/me` | 🛡️ Admin | Verify administrator access |
 
 </details>
 
 <details>
-<summary><strong>Vehicle inventory routes</strong></summary>
+<summary><b>🚘 Vehicle inventory routes</b></summary>
+<br />
 
-Method
-
-Route
-
-Access
-
-Purpose
-
-GET
-
-/api/vehicles
-
-Public
-
-List vehicles, filters, and pagination
-
-GET
-
-/api/vehicles/search
-
-Public
-
-Search make, model, or category
-
-GET
-
-/api/vehicles/{vehicle_id}
-
-Public
-
-View one vehicle
-
-POST
-
-/api/vehicles
-
-Admin
-
-Add a vehicle
-
-PUT
-
-/api/vehicles/{vehicle_id}
-
-Admin
-
-Update a vehicle
-
-DELETE
-
-/api/vehicles/{vehicle_id}
-
-Admin
-
-Delete a vehicle
-
-POST
-
-/api/vehicles/{vehicle_id}/purchase
-
-Signed in
-
-Purchase one unit safely
-
-POST
-
-/api/vehicles/{vehicle_id}/restock
-
-Admin
-
-Increase stock
+| Method | Route | Access | Purpose |
+|:--:|:--|:--:|:--|
+| ![GET](https://img.shields.io/badge/GET-22c55e?style=flat-square) | `/api/vehicles` | 🌍 Public | List vehicles, filters, and pagination |
+| ![GET](https://img.shields.io/badge/GET-22c55e?style=flat-square) | `/api/vehicles/search` | 🌍 Public | Search make, model, or category |
+| ![GET](https://img.shields.io/badge/GET-22c55e?style=flat-square) | `/api/vehicles/{vehicle_id}` | 🌍 Public | View one vehicle |
+| ![POST](https://img.shields.io/badge/POST-3b82f6?style=flat-square) | `/api/vehicles` | 🛡️ Admin | Add a vehicle |
+| ![PUT](https://img.shields.io/badge/PUT-f59e0b?style=flat-square) | `/api/vehicles/{vehicle_id}` | 🛡️ Admin | Update a vehicle |
+| ![DELETE](https://img.shields.io/badge/DELETE-ef4444?style=flat-square) | `/api/vehicles/{vehicle_id}` | 🛡️ Admin | Delete a vehicle |
+| ![POST](https://img.shields.io/badge/POST-3b82f6?style=flat-square) | `/api/vehicles/{vehicle_id}/purchase` | 👤 Signed in | Purchase one unit safely |
+| ![POST](https://img.shields.io/badge/POST-3b82f6?style=flat-square) | `/api/vehicles/{vehicle_id}/restock` | 🛡️ Admin | Increase stock |
 
 </details>
 
-🔐 Security and design choices
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-Passwords are hashed with Argon2 through pwdlib; plain-text passwords are never stored.
+## 🔐 Security
 
-JWT tokens expire and are signed server-side with HS256.
+<table>
+<tr>
+<td width="33%" valign="top">
 
-Session-only storage: the frontend uses sessionStorage, not localStorage.
+### 🔑 Credentials
+Passwords are hashed with **Argon2** via `pwdlib`. Plain-text passwords are never stored.
 
-Backend permissions win: FastAPI dependencies validate the current user and admin role for protected operations.
+</td>
+<td width="33%" valign="top">
 
-Purchases are atomic: the database decrements stock only when quantity > 0, preventing negative inventory under concurrent requests.
+### 🎟️ Tokens
+**JWTs expire** and are signed server-side with HS256. The frontend uses `sessionStorage`, not `localStorage`, so sessions end with the tab.
 
-Local-only files stay local: the SQLite database, .env files, virtual environments, node_modules, and build output are ignored by Git.
+</td>
+<td width="33%" valign="top">
 
-🧯 Quick troubleshooting
+### 🛡️ Permissions
+**Backend permissions win.** FastAPI dependencies validate the current user and admin role on every protected operation.
 
-Problem
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
 
-What to check
+### ⚛️ Atomic purchases
+Stock is decremented **only when `quantity > 0`**, preventing negative inventory under concurrent requests.
 
-Registration or login fails from the website
+</td>
+<td colspan="2" valign="top">
 
-Confirm both terminals are running: FastAPI on port 8000 and Vite on port 5173.
+### 🙈 Local-only files stay local
+The SQLite database, `.env` files, virtual environments, `node_modules`, and build output are all ignored by Git.
 
-node: command not found
+</td>
+</tr>
+</table>
 
-Install/activate Node.js, then check node --version and npm --version.
+<img src="docs/assets/divider.svg" width="100%" alt="" />
 
-Database/table error
+## 🧯 Troubleshooting
 
-From backend/, run python -m alembic upgrade head.
+| Problem | Fix |
+|:--|:--|
+| 🌐 Registration or login fails from the website | Confirm **both** terminals are running: FastAPI on port **8000** and Vite on port **5173**. |
+| ❓ `node: command not found` | Install or activate Node.js, then check `node --version` and `npm --version`. |
+| 🗄️ Database or table error | From `backend/`, run `python -m alembic upgrade head`. |
+| 🔑 Admin login doesn't work | From `backend/`, run `python -m scripts.seed_admin`, then use the documented demo account. |
+| 🚧 Port already in use | Stop the older server with `Ctrl + C`, then start the command again. |
+| 🐍 `(venv)` missing from the prompt | Re-run the activation command from [step 3a](#3%EF%B8%8F%E2%83%A3-start-the-backend-%EF%B8%8F-terminal-1). |
 
-Admin login does not work
+## 📦 Deployment Status
 
-From backend/, run python -m scripts.seed_admin, then sign in with the documented demo account.
+> This project is configured for **local demonstration**. There is no verified public deployment URL yet.
 
-Port already in use
-
-Stop the older server with Ctrl + C, then start the command again.
-
-📦 Deployment status
-
-This project is currently configured for local coursework demonstration. There is no verified public deployment URL yet.
-
-🤖 AI usage and transparency
+## 🤖 AI Usage and Transparency
 
 AI assistance was used openly during this project:
 
-ChatGPT helped with planning, architecture guidance, Git workflow guidance, QA planning, and documentation guidance.
+- **ChatGPT** helped with planning, architecture guidance, Git workflow guidance, QA planning, and documentation guidance.
+- **Google Antigravity in VS Code** helped generate and refine implementation code from scoped prompts.
+- **The developer** reviewed all generated work, ran tests and builds locally, completed browser testing, captured screenshots, made deliberate decisions, and committed and pushed the work.
 
-Google Antigravity in VS Code helped generate and refine implementation code from scoped prompts.
+The unedited prompt record is available in [`PROMPTS.md`](PROMPTS.md). AI-assisted commits include an attribution trailer where applicable.
 
-The developer reviewed generated work, ran tests/builds locally, completed browser testing, captured screenshots, made deliberate decisions, and committed/pushed the work.
+## 📄 License
 
-The unedited prompt record is available in PROMPTS.md. AI-assisted commits include an attribution trailer where applicable.
+See [`LICENSE`](LICENSE).
 
-📄 License
-
-See LICENSE.
+<div align="center">
+<br />
+<img src="docs/assets/divider.svg" width="60%" alt="" />
+<br /><br />
+<sub>Built with FastAPI, React, and a lot of careful testing. ⭐ Star the repo if you found it useful.</sub>
+</div>
