@@ -273,3 +273,49 @@ Constraints:
 - Keep code beginner-friendly, type annotated, and clean.
 
 After implementation, state the exact commands to run the registration tests and Ruff.
+
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: Phase 3, Part 3 — write tests that specify login behavior only. This is the RED step of TDD. Do not implement login code yet.
+
+Read the existing project structure and reuse the current pytest fixtures in backend/tests/conftest.py and the registration endpoint at POST /api/auth/register.
+
+Create exactly one test file:
+backend/tests/test_auth_login.py
+
+Test 1: test_login_with_valid_credentials_returns_access_token
+- Register a customer first through POST /api/auth/register using:
+  email: customer@example.com
+  password: SecurePass123!
+- Send POST /api/auth/login as JSON with the same email and password.
+- Expect HTTP 200.
+- Assert the response JSON contains:
+  - access_token: a non-empty string
+  - token_type: exactly "bearer"
+- Assert the response does not contain password or password_hash.
+
+Test 2: test_login_with_invalid_password_is_rejected
+- Register the same customer first.
+- Send POST /api/auth/login as JSON using:
+  email: customer@example.com
+  password: WrongPass123!
+- Expect HTTP 401.
+- Assert the JSON detail is exactly:
+  "Incorrect email or password"
+
+Test 3: test_login_with_unknown_email_is_rejected
+- Do not register a user.
+- Send POST /api/auth/login as JSON using:
+  email: unknown@example.com
+  password: SecurePass123!
+- Expect HTTP 401.
+- Assert the JSON detail is exactly:
+  "Incorrect email or password"
+
+Constraints:
+- Do not change any production application code.
+- Do not change existing tests, migrations, database models, requirements, or frontend files.
+- Do not create a login route, JWT utility, schemas, services, or seed data yet.
+- Keep the tests concise, typed, readable, and compatible with ruff.
+- Do not run git commands and do not create commits.
