@@ -456,3 +456,151 @@ Constraints:
 - Do not create protected dependencies, routes, seed scripts, or admin setup yet.
 - Do not run Git commands and do not create commits.
 - Keep tests readable, typed, and Ruff-compatible.
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: Phase 3, Part 5B — implement reusable JWT authentication and admin-role authorization so all existing tests pass.
+
+First inspect:
+- backend/tests/test_auth_authorization.py
+- backend/app/core/config.py
+- backend/app/core/security.py
+- backend/app/db/database.py
+- backend/app/models/user.py
+- backend/app/api/routes/auth.py
+- backend/app/main.py
+
+Implement the following production code only:
+
+1. Current-user dependency
+- Create backend/app/api/deps.py.
+- Use FastAPI HTTPBearer security to read the Authorization: Bearer <token> header.
+- Create a reusable get_current_user dependency that:
+  - decodes the JWT using the configured SECRET_KEY and ALGORITHM;
+  - validates that "sub" is a valid integer user id;
+  - loads that user from the database;
+  - returns the current User ORM object;
+  - rejects missing, malformed, expired, invalid, or unknown-user tokens with HTTP 401;
+  - uses a safe generic detail such as "Could not validate credentials";
+  - sets a Bearer authentication challenge header where appropriate.
+- Never trust the JWT role claim alone for authorization. Load the user from the database, then use that database role.
+
+2. Admin dependency
+- In the same deps.py, create a reusable require_admin dependency.
+- It must depend on get_current_user.
+- It must return the user only if user.role is exactly "admin".
+- Otherwise raise HTTP 403 with exactly:
+  "Admin access required"
+
+3. Safe user response
+- Reuse the existing safe public user-response schema if it already fits.
+- If needed, add a response schema in backend/app/schemas/auth.py containing only id, email, and role, with Pydantic v2 from_attributes enabled.
+- Never expose password or password_hash.
+
+4. Authenticated identity route
+- Update backend/app/api/routes/auth.py.
+- Add GET /api/auth/me.
+- It must use get_current_user.
+- Return the safe authenticated-user response with HTTP 200.
+
+5. Admin identity route
+- Create backend/app/api/routes/admin.py.
+- Its router prefix must be /api/admin and it should have an appropriate "Admin" tag.
+- Add GET /api/admin/me.
+- It must use require_admin.
+- Return the safe authenticated-user response with HTTP 200.
+
+6. App wiring
+- Update backend/app/main.py only as needed to include the admin router.
+- Preserve all existing route behavior.
+
+Constraints:
+- Do not modify any test files.
+- Do not change database models, Alembic migrations, requirements, frontend files, or the JWT login behavior.
+- Do not create an admin seed script yet; the existing test creates its own temporary admin record.
+- Do not run Git commands or create a commit.
+- Keep code typed, concise, secure, and Ruff-compatible.
+
+When complete, report the files changed and commands I should run.
+
+
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: finish Phase 3 by adding a safe, repeatable development admin-account seed command.
+
+First inspect the existing settings, database session setup, User model, password hashing utility, .env.example, and package structure.
+
+Implement:
+
+1. Create a runnable seed command under backend/scripts/ so it can be executed from the backend directory as:
+   python -m scripts.seed_admin
+
+2. The command must:
+   - create one user with role "admin";
+   - get its email and password from environment variables named ADMIN_EMAIL and ADMIN_PASSWORD;
+   - use reasonable clearly-development-only fallback values if those variables are absent:
+     email: admin@example.com
+     password: AdminPass123!
+   - hash the password using the project’s existing hash_password utility;
+   - use the existing database configuration and SQLAlchemy session setup;
+   - be idempotent:
+     - if no user with ADMIN_EMAIL exists, create the admin and print a concise success message;
+     - if a user with that email already exists and is admin, print that it already exists and exit successfully;
+     - if a user with that email exists but is not admin, do not silently change its role; print a clear message and exit with a non-zero status or clear failure.
+   - never print the password, password hash, JWT, database URL, or secret key.
+
+3. Update backend/.env.example:
+   - document ADMIN_EMAIL and ADMIN_PASSWORD;
+   - keep all example secrets clearly fake/development-only;
+   - do not add a real secret.
+
+4. Add backend/scripts/__init__.py if needed.
+
+Constraints:
+- Do not modify tests, routes, authentication dependencies, database models, migrations, requirements, or frontend files.
+- Do not add startup-time automatic seeding.
+- Do not run Git commands or create commits.
+- Keep the script typed, concise, and Ruff-compatible.
+
+When complete, report changed files and the exact command I should run to create the demonstration admin.
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: finish Phase 3 by adding a safe, repeatable development admin-account seed command.
+
+First inspect the existing settings, database session setup, User model, password hashing utility, .env.example, and package structure.
+
+Implement:
+
+1. Create a runnable seed command under backend/scripts/ so it can be executed from the backend directory as:
+   python -m scripts.seed_admin
+
+2. The command must:
+   - create one user with role "admin";
+   - get its email and password from environment variables named ADMIN_EMAIL and ADMIN_PASSWORD;
+   - use reasonable clearly-development-only fallback values if those variables are absent:
+     email: admin@example.com
+     password: AdminPass123!
+   - hash the password using the project’s existing hash_password utility;
+   - use the existing database configuration and SQLAlchemy session setup;
+   - be idempotent:
+     - if no user with ADMIN_EMAIL exists, create the admin and print a concise success message;
+     - if a user with that email already exists and is admin, print that it already exists and exit successfully;
+     - if a user with that email exists but is not admin, do not silently change its role; print a clear message and exit with a non-zero status or clear failure.
+   - never print the password, password hash, JWT, database URL, or secret key.
+
+3. Update backend/.env.example:
+   - document ADMIN_EMAIL and ADMIN_PASSWORD;
+   - keep all example secrets clearly fake/development-only;
+   - do not add a real secret.
+
+4. Add backend/scripts/__init__.py if needed.
+
+Constraints:
+- Do not modify tests, routes, authentication dependencies, database models, migrations, requirements, or frontend files.
+- Do not add startup-time automatic seeding.
+- Do not run Git commands or create commits.
+- Keep the script typed, concise, and Ruff-compatible.
+
+When complete, report changed files and the exact command I should run to create the demonstration admin.
