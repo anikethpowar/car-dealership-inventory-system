@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import MessageAlert from '../components/MessageAlert';
+import { extractErrorMessage } from '../utils/formatters';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -48,14 +49,7 @@ export default function RegisterPage() {
       setPassword('');
       setConfirmPassword('');
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      if (typeof detail === 'string') {
-        setError(detail);
-      } else if (Array.isArray(detail)) {
-        setError(detail.map((d) => d.msg || JSON.stringify(d)).join(', '));
-      } else {
-        setError('Registration failed. Please check your information.');
-      }
+      setError(extractErrorMessage(err, 'Registration failed. Please check your information.'));
       setPassword('');
       setConfirmPassword('');
     } finally {

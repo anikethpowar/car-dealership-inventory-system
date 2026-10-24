@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import MessageAlert from '../components/MessageAlert';
+import { extractErrorMessage } from '../utils/formatters';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -36,14 +37,7 @@ export default function LoginPage() {
         navigate('/', { replace: true });
       }
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      if (typeof detail === 'string') {
-        setError(detail);
-      } else if (Array.isArray(detail)) {
-        setError(detail.map((d) => d.msg || JSON.stringify(d)).join(', '));
-      } else {
-        setError('Login failed. Please check your credentials.');
-      }
+      setError(extractErrorMessage(err, 'Login failed. Please check your credentials.'));
       setPassword('');
     } finally {
       setIsSubmitting(false);

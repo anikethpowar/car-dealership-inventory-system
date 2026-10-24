@@ -1079,3 +1079,246 @@ H. QUALITY RULES
   npm run lint
   npm run build
 - Report every changed/created file and the results of both commands.
+
+You are working in an existing React/Vite/Tailwind frontend for a car dealership inventory system.
+
+Task: Phase 7 — build the complete customer and administrator inventory user interface on top of the existing FastAPI API.
+
+First inspect:
+- frontend/src/api/
+- frontend/src/auth/
+- frontend/src/components/
+- frontend/src/pages/
+- frontend/src/App.jsx
+- frontend/src/index.css
+- frontend/package.json
+- backend/app/api/routes/vehicles.py
+- backend/app/schemas/vehicle.py
+
+Preserve the existing JavaScript/JSX frontend structure, Axios client, AuthContext, protected routes, sessionStorage behavior, and Tailwind setup.
+
+Do not modify backend code, database models, migrations, requirements, or authentication behavior.
+
+==================================================
+A. API FUNCTIONS
+==================================================
+
+Create frontend/src/api/vehicles.js using the existing configured Axios client.
+
+Provide small reusable functions matching the backend API exactly:
+
+- listVehicles(params)
+  GET /api/vehicles
+
+- searchVehicles(params)
+  GET /api/vehicles/search
+  Search text must be sent as q.
+
+- getVehicle(vehicleId)
+  GET /api/vehicles/{vehicleId}
+
+- createVehicle(payload)
+  POST /api/vehicles
+  Admin only.
+
+- updateVehicle(vehicleId, payload)
+  PUT /api/vehicles/{vehicleId}
+  Admin only.
+
+- deleteVehicle(vehicleId)
+  DELETE /api/vehicles/{vehicleId}
+  Admin only.
+
+- purchaseVehicle(vehicleId)
+  POST /api/vehicles/{vehicleId}/purchase
+  Requires a logged-in user.
+
+- restockVehicle(vehicleId, quantity)
+  POST /api/vehicles/{vehicleId}/restock
+  Send JSON:
+  { "quantity": positiveInteger }
+  Admin only.
+
+Do not duplicate Axios configuration or manually handle authorization headers in these functions. The existing Axios client must remain the single source for API configuration and bearer-token handling.
+
+==================================================
+B. REUSABLE UI COMPONENTS
+==================================================
+
+Create reusable components where useful, such as:
+
+- VehicleCard.jsx
+- VehicleFilters.jsx
+- VehicleList.jsx
+- Pagination.jsx
+- VehicleForm.jsx
+- RestockForm.jsx
+- ConfirmDialog.jsx or a simple reusable confirmation component
+- EmptyState.jsx
+
+Use only as many components as needed to keep pages understandable. Avoid a huge monolithic component.
+
+Requirements:
+- Format price safely for display using a currency formatter. Backend decimal values may arrive as strings; convert only for display.
+- Clearly show make, model, category, price, and quantity.
+- Show an obvious stock badge:
+  - “In stock: N” when quantity is greater than zero
+  - “Out of stock” when quantity is zero
+- Ensure cards and controls are responsive and usable on mobile screens.
+- Use accessible labels, button text, focus styles, and error/status messages.
+
+==================================================
+C. CUSTOMER DASHBOARD
+==================================================
+
+Upgrade DashboardPage into the customer inventory experience.
+
+1. Vehicle display
+- Fetch the vehicle list from GET /api/vehicles when the page loads.
+- Show responsive vehicle cards in a clean grid.
+- Show a loading indicator while data is loading.
+- Show an error message with a Retry button if loading fails.
+- Show a clear empty state if no vehicles match.
+
+2. Search and filtering
+- Add a search input for make, model, or category.
+- Add filter controls for:
+  - make
+  - model
+  - category
+  - minimum price
+  - maximum price
+  - in-stock only
+- Include an explicit “Apply filters” button.
+- Include a “Clear filters” button.
+- Use GET /api/vehicles/search when a non-empty search query is applied.
+- Use GET /api/vehicles with filter query parameters when search is empty.
+- Preserve filters/search while navigating pages.
+- Use the backend pagination response fields:
+  items, total, page, page_size.
+- Include previous/next pagination controls, disabled appropriately, and show useful result information.
+
+3. Purchase flow
+- Display a “Purchase” button for every vehicle.
+- Disable it while that specific purchase request is in progress.
+- Disable it when quantity is zero and label it “Out of stock”.
+- When purchase succeeds:
+  - display a clear success message;
+  - refresh the current list from the API so stock is authoritative;
+  - do not decrement quantity only in the browser without refreshing.
+- When purchase fails:
+  - display the backend error detail when available;
+  - refresh the list if relevant.
+- The API remains authoritative. Frontend button visibility/disabled state is only convenience, never permission enforcement.
+
+4. Existing dashboard shell
+- Keep the authenticated welcome context, but replace the “coming next” placeholder with this real inventory experience.
+- Admin users may see the same browsing/purchase experience, but their admin navigation remains available.
+
+==================================================
+D. ADMIN INVENTORY PAGE
+==================================================
+
+Upgrade AdminInventoryPage into the real admin management interface.
+
+This page is already protected with AdminRoute. Continue to use the backend’s admin-protected API endpoints; do not assume the frontend route alone provides security.
+
+1. Inventory list
+- Load vehicles from the API.
+- Show a responsive admin-friendly table on wider screens and a usable card/list layout on narrow screens, or use a responsive design that remains readable at all widths.
+- Each item must show make, model, category, price, and quantity.
+- Include loading, error/retry, and empty states.
+
+2. Add vehicle
+- Add a clearly labelled “Add vehicle” form or panel.
+- Required fields:
+  - make
+  - model
+  - category
+  - price
+  - quantity
+- Client-side validation:
+  - non-blank text fields;
+  - price greater than zero;
+  - quantity as a non-negative whole number.
+- Submit through createVehicle.
+- On success:
+  - show a confirmation message;
+  - reset the form;
+  - refresh inventory.
+- On backend failure, show a clear error.
+
+3. Edit vehicle
+- Allow an admin to edit an existing vehicle.
+- Use a clearly labelled edit action that opens an inline panel, modal, or dedicated editable area.
+- Pre-fill the current values.
+- Allow partial or full updates for make, model, category, price, and quantity.
+- Apply the same validation rules.
+- Submit through updateVehicle.
+- On success, show confirmation and refresh inventory.
+- Include a Cancel action that discards unsaved edits.
+
+4. Restock vehicle
+- Provide a restock action for every vehicle.
+- Require a positive whole-number quantity.
+- Submit through restockVehicle.
+- On success, show confirmation and refresh inventory.
+- Clearly show errors for invalid values or failed API responses.
+
+5. Delete vehicle
+- Provide a delete action.
+- Require an explicit confirmation step before calling deleteVehicle. A browser confirm dialog is acceptable, but a clear in-page confirmation component is preferred.
+- On successful deletion, show a confirmation message and refresh inventory.
+- Show API errors if the operation fails.
+
+6. Customer/admin separation
+- Customer pages must not show create, edit, delete, or restock controls.
+- Admin controls belong only on the existing admin route.
+- Continue relying on backend authorization even if UI controls are hidden.
+
+==================================================
+E. LOGIN AND REGISTER IMPROVEMENTS
+==================================================
+
+Keep the existing working LoginPage and RegisterPage, but improve them only as needed:
+
+- Show useful backend error detail when available.
+- Keep client-side required-field validation.
+- Register form must validate password confirmation before submission.
+- Disable submit buttons while requests are pending.
+- Preserve current successful redirect behavior.
+- Never show or log passwords.
+- Do not add a role-selection control.
+
+==================================================
+F. DESIGN AND ACCESSIBILITY
+==================================================
+
+Use the existing Tailwind visual language:
+- dark navy/slate header;
+- restrained purple/blue accent;
+- light neutral backgrounds;
+- readable cards;
+- consistent spacing;
+- visible hover and focus states;
+- good contrast;
+- mobile-first layouts.
+
+Do not add external image assets, paid UI libraries, mock API data, or a new CSS framework.
+
+==================================================
+G. QUALITY AND SCOPE
+==================================================
+
+- Do not modify backend code.
+- Do not add a new frontend testing framework in this phase.
+- Do not run Git commands or create commits.
+- Do not replace the current authentication architecture.
+- Do not trust frontend role checks for real security.
+- Run:
+  npm run lint
+  npm run build
+- Report:
+  1. all changed/created files;
+  2. results of lint and build;
+  3. concise manual testing steps for customer purchase and admin inventory management.
