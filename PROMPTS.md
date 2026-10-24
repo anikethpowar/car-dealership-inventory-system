@@ -1496,3 +1496,210 @@ Required edits:
 6. Correct all obvious spacing and wording defects, including “fromthe”, “stockbadges”, and “withoutoverflow”.
 7. Preserve the known non-blocking warnings section, but do not claim that project code caused the warnings.
 8. Do not make up results for any unverified browser behavior.
+
+
+You are working in the final documentation and submission phase of an existing full-stack Car Dealership Inventory System.
+
+Task: Phase 9 — make the repository reproducible, reviewable, honest about AI usage, and ready for coursework submission.
+
+First inspect:
+- README.md at the repository root
+- PROMPTS.md
+- docs/TESTING.md
+- docs/screenshots/
+- backend/requirements.txt
+- backend/.env.example
+- backend/alembic.ini
+- backend/scripts/seed_admin.py
+- frontend/package.json
+- frontend/.env.example
+- backend API route files
+- git log --oneline --decorate -20
+- git remote -v
+
+Do not modify backend/frontend application behavior, database models, migrations, tests, or screenshots unless an actual documentation-related defect is found.
+
+==================================================
+A. REWRITE THE ROOT README
+==================================================
+
+Replace the root README.md with a complete, accurate, beginner-friendly project README.
+
+It must include:
+
+1. Project title and overview
+- Title: Car Dealership Inventory System
+- Briefly explain that it is a full-stack inventory application where customers can browse/search/purchase vehicles and administrators manage inventory.
+
+2. Feature summary
+- Customer registration and JWT login
+- Customer/admin role separation
+- Vehicle browse, search, filters, pagination, and stock status
+- Customer purchase with authoritative stock refresh
+- Admin create, edit, restock, and delete operations
+- Atomic purchase behavior so stock cannot become negative
+- Responsive React/Tailwind UI
+- Persistent SQLite database and Alembic migrations
+
+3. Technology stack
+- FastAPI
+- SQLAlchemy
+- Alembic
+- SQLite
+- JWT and password hashing
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- Pytest and Ruff
+
+4. Architecture overview
+- Include a concise repository tree showing:
+  backend/
+  frontend/
+  docs/
+  PROMPTS.md
+- Explain in plain language how React communicates with FastAPI and how SQLite persists data.
+
+5. Prerequisites
+- Python 3.12 or compatible Python 3 version
+- Node.js 22 or compatible current Node version
+- npm
+- Git
+
+6. Complete local setup from a fresh clone
+Use commands that match the actual repository configuration. Include:
+- clone and enter repository;
+- create and activate a Python virtual environment;
+- install backend requirements;
+- copy backend/.env.example to backend/.env only if the current configuration expects it;
+- apply migrations;
+- seed the development admin account;
+- run FastAPI;
+- install frontend dependencies using npm ci;
+- copy frontend/.env.example to frontend/.env only if needed;
+- run the Vite frontend.
+
+Clearly state that backend and frontend run in separate terminals.
+
+7. Local URLs
+- Frontend: http://localhost:5173
+- Backend health route: http://127.0.0.1:8000/api/health
+- Backend Swagger docs: http://127.0.0.1:8000/docs
+
+8. Development demo account
+Document only the development seed account, with a warning that it is for local demonstration only:
+- Email: admin@example.com
+- Password: AdminPass123!
+
+9. API overview
+Provide a concise table of the main endpoints grouped by Authentication and Vehicles. Include method, path, access level, and purpose.
+Use the actual implemented routes only.
+
+10. Testing and quality checks
+Include the exact commands:
+- backend pytest
+- backend Ruff
+- frontend npm run lint
+- frontend npm run build
+- Alembic current
+Link to docs/TESTING.md for the full checklist and results.
+
+11. Screenshots
+Embed these committed screenshots with correct relative Markdown paths:
+- docs/screenshots/customer-dashboard.png
+- docs/screenshots/customer-purchase-success.png
+- docs/screenshots/admin-inventory.png
+- docs/screenshots/mobile-dashboard.png
+
+Use clear captions and do not embed any missing file.
+
+12. Security/design notes
+Briefly explain:
+- passwords are hashed;
+- JWT tokens are used;
+- session tokens are stored in sessionStorage;
+- backend authorization remains the true permission authority;
+- SQLite database and .env files are local and ignored by Git.
+
+13. Deployment
+Do not invent a deployment link. State honestly that the project is currently intended to run locally unless a verified deployment URL already exists in the repository.
+
+14. My AI Usage
+Create an honest, explicit section explaining:
+- ChatGPT was used for project planning, architecture guidance, Git workflow guidance, QA planning, and documentation guidance.
+- Google Antigravity was used in VS Code to generate and refine implementation code from prompts.
+- The developer reviewed outputs, ran commands locally, executed browser testing, fixed/accepted changes deliberately, and committed/pushed the final work.
+- Raw AI prompt evidence is maintained in PROMPTS.md.
+- AI-assisted commits include an attribution trailer.
+
+Do not exaggerate human-only authorship. Do not claim any AI tool performed actions it did not perform.
+
+==================================================
+B. PROMPT EVIDENCE AUDIT
+==================================================
+
+Review PROMPTS.md.
+
+- Preserve existing raw prompt content exactly; do not rewrite, summarize, or “clean up” historical prompts.
+- Ensure the Phase 9 prompt is recorded because it was supplied before this task.
+- If content is missing only because this latest prompt was not yet pasted, tell the user rather than inventing it.
+- Do not add synthetic chat logs.
+
+==================================================
+C. GIT HISTORY REVIEW
+==================================================
+
+Review recent Git history and report:
+- whether commit messages are descriptive;
+- whether AI-assisted commits contain the expected attribution trailer;
+- whether the current remote is configured;
+- whether any local database, virtual environment, node_modules, .env file, or dist directory appears tracked.
+
+Do not rewrite history, amend commits, force push, change remotes, or run Git commit/push commands.
+
+==================================================
+D. VALIDATION
+==================================================
+
+Run and report:
+
+Backend:
+- python -m pytest tests -q
+- python -m ruff check app tests scripts
+- python -m alembic current
+
+Frontend:
+- npm run lint
+- npm run build
+
+If an actual project-code failure appears, make the smallest focused repair, rerun the relevant checks, and report it. Ignore non-blocking warnings originating inside installed third-party packages, but mention them accurately.
+
+==================================================
+E. FRESH-CLONE REPRODUCIBILITY
+==================================================
+
+Do not run a destructive cleanup and do not modify the user’s working directory.
+
+Instead, provide a safe exact command sequence the user can run after committing and pushing this Phase 9 work to validate a fresh clone in a newly created temporary directory. It must:
+- clone the configured public origin;
+- create a new venv;
+- install backend requirements;
+- apply migrations;
+- run backend tests;
+- install frontend dependencies with npm ci;
+- run frontend lint and production build;
+- use a temporary directory created by mktemp -d;
+- clean up only that explicit temporary directory at the end.
+
+Do not claim this fresh-clone check has been performed unless it truly was.
+
+==================================================
+F. CONSTRAINTS
+==================================================
+
+- Do not run Git commit, push, reset, rebase, amend, checkout, or force operations.
+- Do not invent test, screenshot, deployment, or fresh-clone results.
+- Do not add dependencies.
+- Keep README polished and concise enough for a reviewer to follow.
+- Report every changed file, validation result, documentation decision, and Git-history observation when finished.
