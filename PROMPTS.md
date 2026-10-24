@@ -849,3 +849,233 @@ Required behavior:
 Add or improve a focused test only if it materially verifies a missing purchase edge case. Keep all existing tests passing.
 
 When complete, report changed files and commands I should run.
+
+You are working in the existing React/Vite frontend for a car dealership inventory system.
+
+Task: Phase 6 — replace the Vite starter page with a clean, responsive frontend application shell that has routing, an Axios API client, and session-based authentication state.
+
+First inspect:
+- frontend/package.json
+- frontend/vite.config.js
+- frontend/src/
+- frontend/src/index.css
+- frontend/.gitignore
+- backend API routes and response shapes, especially:
+  - POST /api/auth/register
+  - POST /api/auth/login
+  - GET /api/auth/me
+  - GET /api/admin/me
+
+The frontend uses JavaScript and JSX, not TypeScript. Preserve that choice.
+
+==================================================
+A. DEPENDENCIES AND ENVIRONMENT
+==================================================
+
+1. Install only these missing frontend dependencies if they are not already present:
+- axios
+- react-router-dom
+
+2. Create frontend/.env.example containing:
+VITE_API_BASE_URL=http://127.0.0.1:8000
+
+3. The API client must read the base URL from:
+import.meta.env.VITE_API_BASE_URL
+
+A development fallback of http://127.0.0.1:8000 is acceptable, but environment configuration must take priority.
+
+4. Do not place passwords, JWTs, or real secrets in any frontend environment file.
+
+==================================================
+B. REQUIRED FOLDER STRUCTURE
+==================================================
+
+Create a clear, reusable structure under frontend/src/:
+
+- api/
+  - client.js
+  - auth.js
+- auth/
+  - AuthContext.jsx
+  - ProtectedRoute.jsx
+  - AdminRoute.jsx
+- components/
+  - AppLayout.jsx
+  - Header.jsx
+  - LoadingScreen.jsx
+  - MessageAlert.jsx
+- pages/
+  - DashboardPage.jsx
+  - LoginPage.jsx
+  - RegisterPage.jsx
+  - AdminInventoryPage.jsx
+  - NotFoundPage.jsx
+- App.jsx
+- main.jsx
+
+You may add small supporting files only when they make the structure cleaner.
+
+==================================================
+C. AXIOS API CLIENT
+==================================================
+
+Create frontend/src/api/client.js.
+
+Requirements:
+- Create one configured Axios instance.
+- Set its baseURL from VITE_API_BASE_URL.
+- Set JSON content headers.
+- Use a request interceptor to add:
+  Authorization: Bearer <token>
+  only when a session token exists.
+- Do not hardcode a token.
+- Do not log tokens, passwords, or API credentials to the browser console.
+- Make token access reusable without creating circular imports.
+
+Create frontend/src/api/auth.js with small functions for:
+- register(payload)
+- login(payload)
+- getCurrentUser()
+
+Use the backend’s existing JSON request/response shapes.
+
+==================================================
+D. AUTHENTICATION CONTEXT
+==================================================
+
+Create frontend/src/auth/AuthContext.jsx.
+
+Requirements:
+- Provide an AuthProvider and a reusable useAuth hook.
+- Keep these values in context:
+  - user: null or safe user data from GET /api/auth/me
+  - token: null or JWT string
+  - isAuthenticated: boolean
+  - isAdmin: boolean derived from user.role === "admin"
+  - isLoading: boolean while restoring an existing session
+  - login(credentials)
+  - register(payload)
+  - logout()
+- Store the JWT only in sessionStorage, not localStorage. Use a clear key such as dealership_access_token.
+- On app startup:
+  - read a token from sessionStorage;
+  - if it exists, call GET /api/auth/me;
+  - retain the token only if that request succeeds;
+  - if it fails, clear the invalid token and unauthenticated state.
+- During login:
+  - call POST /api/auth/login;
+  - store access_token in sessionStorage;
+  - call GET /api/auth/me to retrieve the trusted id, email, and role;
+  - update context state.
+- During register:
+  - call POST /api/auth/register;
+  - do not automatically invent admin privileges;
+  - it is acceptable to return the registration result so RegisterPage can direct the user to login.
+- logout must clear sessionStorage and all authentication state.
+- Use clear error propagation so forms can display backend errors.
+- Do not decode or trust the JWT role claim in the browser. Use GET /api/auth/me as the trusted role source.
+
+==================================================
+E. ROUTING AND ACCESS CONTROL
+==================================================
+
+Use react-router-dom and configure these routes:
+
+Public:
+- /login → LoginPage
+- /register → RegisterPage
+
+Authenticated:
+- / → DashboardPage
+
+Admin only:
+- /admin/inventory → AdminInventoryPage
+
+Fallback:
+- * → NotFoundPage
+
+Create:
+- ProtectedRoute: redirects unauthenticated visitors to /login.
+- AdminRoute: redirects unauthenticated visitors to /login and non-admin users to /.
+
+While authentication state is initially restoring, show LoadingScreen instead of redirecting prematurely.
+
+==================================================
+F. PAGES AND CURRENT-SCOPE UI
+==================================================
+
+1. LoginPage
+- Email and password form.
+- Submit through useAuth().login.
+- Display backend/API errors accessibly.
+- On successful login:
+  - redirect admins to /admin/inventory;
+  - redirect customers to /.
+- Link to /register.
+- Do not display passwords after entry.
+
+2. RegisterPage
+- Email, password, and confirm-password fields.
+- Client-side check that passwords match.
+- Submit through useAuth().register.
+- Display backend/API errors accessibly.
+- On success, show a clear success message and redirect or link to /login.
+- Never let the form choose a role.
+
+3. DashboardPage
+- Authenticated customer dashboard shell.
+- Show a friendly welcome using the user email.
+- Include a clear “Vehicle inventory is coming next” placeholder.
+- If the current user is admin, show a navigation link to /admin/inventory.
+- Do not build vehicle browsing, purchasing, filters, or admin inventory controls in this phase.
+
+4. AdminInventoryPage
+- Must be protected by AdminRoute.
+- Show a clearly labelled admin inventory shell.
+- Include a short placeholder saying that inventory management controls will be added in the next frontend phase.
+- Do not implement create/edit/delete/restock controls yet.
+
+5. AppLayout and Header
+- Use a shared responsive layout.
+- Header should show:
+  - application name;
+  - Dashboard link when authenticated;
+  - Admin Inventory link only for admins;
+  - Login/Register links when unauthenticated;
+  - signed-in email and a Sign out button when authenticated.
+- Sign out must call logout and redirect to /login.
+
+==================================================
+G. TAILWIND VISUAL DESIGN
+==================================================
+
+Replace all Vite starter content and styling.
+
+Use the existing Tailwind setup. Do not replace Tailwind with another CSS framework.
+
+Create a clean, responsive dealership dashboard style:
+- light neutral page background;
+- dark navy/slate header;
+- one restrained accent colour;
+- centered form cards;
+- readable labels and visible focus states;
+- responsive spacing;
+- accessible contrast;
+- no external images, UI kits, or copied template assets.
+
+Update frontend/src/index.css only with global base styling appropriate for Tailwind.
+Remove unused Vite logo/demo imports and assets if they are no longer referenced.
+
+==================================================
+H. QUALITY RULES
+==================================================
+
+- Do not modify backend code.
+- Do not build vehicle CRUD UI or search UI yet.
+- Do not add frontend test tooling in this phase.
+- Do not run Git commands or create commits.
+- Keep components reasonably small and reusable.
+- Run:
+  npm run lint
+  npm run build
+- Report every changed/created file and the results of both commands.
