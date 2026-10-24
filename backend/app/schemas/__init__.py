@@ -8,14 +8,26 @@ from app.schemas.auth import (
     UserRegister,
     UserResponse,
 )
+from app.schemas.vehicle import (
+    RestockRequest,
+    VehicleCreate,
+    VehicleListResponse,
+    VehicleResponse,
+    VehicleUpdate,
+)
 
 __all__ = [
     "AccessTokenResponse",
     "LoginRequest",
     "RegisterRequest",
+    "RestockRequest",
     "SafeUserResponse",
     "TokenResponse",
     "UserLogin",
     "UserRegister",
     "UserResponse",
+    "VehicleCreate",
+    "VehicleListResponse",
+    "VehicleResponse",
+    "VehicleUpdate",
 ]

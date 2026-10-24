@@ -604,3 +604,210 @@ Constraints:
 - Keep the script typed, concise, and Ruff-compatible.
 
 When complete, report changed files and the exact command I should run to create the demonstration admin.
+
+You are working in an existing FastAPI backend for a car dealership inventory system.
+
+Task: Phase 4 — build the complete vehicle inventory API with tests, authorization, stock management, filtering, and search.
+
+First inspect the existing project carefully. In particular, inspect:
+- backend/app/models/vehicle.py
+- backend/app/models/user.py
+- backend/app/api/deps.py
+- backend/app/api/routes/auth.py
+- backend/app/api/routes/admin.py
+- backend/app/core/security.py
+- backend/app/db/database.py
+- backend/app/main.py
+- backend/tests/conftest.py
+- backend/tests/test_auth_authorization.py
+
+Important project facts:
+- Authentication already uses JWT bearer tokens.
+- get_current_user is the reusable authenticated-user dependency.
+- require_admin is the reusable admin-only dependency.
+- The existing Vehicle SQLAlchemy model and migration already define the database fields. Reuse them. Do not change database models or create a new Alembic migration unless it is genuinely impossible to meet the requirements otherwise.
+- Existing tests must continue to pass.
+- The test database must remain the temporary file-based SQLite database provided by existing fixtures. Never use the production dealership.db file in tests.
+
+Goal:
+Implement a production-quality vehicle API with this behavior.
+
+==================================================
+A. API ROUTES AND AUTHORIZATION
+==================================================
+
+Create backend/app/api/routes/vehicles.py and wire its router into backend/app/main.py with the prefix:
+
+/api/vehicles
+
+Use the tag "Vehicles".
+
+Implement these routes:
+
+1. POST /api/vehicles
+- Admin only: use require_admin.
+- Create a vehicle.
+- Return HTTP 201 and the safe vehicle response.
+- Customer token must receive HTTP 403 with:
+  {"detail": "Admin access required"}
+
+2. GET /api/vehicles
+- Public read endpoint; no token should be required.
+- Return a paginated vehicle list.
+- Support these optional query parameters:
+  - make: exact match, case-insensitive
+  - model: exact match, case-insensitive
+  - category: exact match, case-insensitive
+  - min_price: decimal value, inclusive
+  - max_price: decimal value, inclusive
+  - in_stock: boolean; when true, only quantity > 0
+  - page: integer, default 1, minimum 1
+  - page_size: integer, default 10, minimum 1, maximum 100
+- Return vehicles in a deterministic order, newest id first.
+- Return this paginated shape:
+  {
+    "items": [vehicle, ...],
+    "total": integer,
+    "page": integer,
+    "page_size": integer
+  }
+
+3. GET /api/vehicles/search
+- Public read endpoint; no token required.
+- Require query parameter q with at least one non-whitespace character.
+- Search case-insensitively across make, model, and category.
+- Return the same paginated shape as GET /api/vehicles.
+- Support page and page_size as above.
+- Put this route before any dynamic /{vehicle_id} route so it is never treated as an id.
+
+4. GET /api/vehicles/{vehicle_id}
+- Public read endpoint; no token required.
+- Return one vehicle.
+- If no vehicle exists, return HTTP 404 with exactly:
+  {"detail": "Vehicle not found"}
+
+5. PUT /api/vehicles/{vehicle_id}
+- Admin only.
+- Support partial updates for make, model, category, price, and quantity.
+- Reject empty request bodies through schema validation or a clear HTTP 422 validation response.
+- Return the updated vehicle.
+- Missing vehicle must return the same exact 404 response above.
+
+6. DELETE /api/vehicles/{vehicle_id}
+- Admin only.
+- Delete the vehicle.
+- Return HTTP 204 with no response body.
+- Missing vehicle must return the same exact 404 response above.
+
+7. POST /api/vehicles/{vehicle_id}/purchase
+- Requires a valid logged-in user through get_current_user. Both customer and admin tokens may use it.
+- No request body is required; a purchase means buying exactly one unit.
+- If the vehicle does not exist, return the same exact 404 response above.
+- If quantity is 0, return HTTP 400 with exactly:
+  {"detail": "Vehicle is out of stock"}
+- Otherwise reduce quantity by exactly 1 and return the updated vehicle with HTTP 200.
+- Quantity must never become negative.
+
+8. POST /api/vehicles/{vehicle_id}/restock
+- Admin only.
+- Accept JSON:
+  {"quantity": positive integer}
+- Add that quantity to the current stock.
+- Quantity must be strictly greater than 0; invalid values must produce HTTP 422 validation errors.
+- Return the updated vehicle.
+- Missing vehicle must return the same exact 404 response above.
+
+==================================================
+B. SCHEMAS, VALIDATION, AND DATA SAFETY
+==================================================
+
+Create or update vehicle schemas in backend/app/schemas/vehicle.py and export them appropriately.
+
+Use separate schemas where they make the API clear:
+- VehicleCreate
+- VehicleUpdate
+- VehicleResponse
+- VehicleListResponse
+- RestockRequest
+
+Validation requirements:
+- make, model, and category must be stripped strings with at least one visible character.
+- price must be a positive decimal value greater than 0.
+- quantity must be a whole number greater than or equal to 0 for creation and updates.
+- restock quantity must be a whole number greater than 0.
+- Keep decimal handling accurate: do not convert money into floats for database operations.
+- VehicleResponse must use Pydantic v2 from_attributes configuration.
+- Do not expose SQLAlchemy internals or unrelated fields.
+
+Use the existing Vehicle model’s fields. If it includes timestamps, it is acceptable to expose them in the response, but do not require clients to submit them.
+
+==================================================
+C. SERVICE LAYER
+==================================================
+
+Create backend/app/services/vehicle_service.py.
+
+Keep route handlers thin. Put database-query and mutation logic in the service layer, including:
+- finding a vehicle or raising the exact 404;
+- creating, updating, and deleting;
+- listing/filtering/pagination;
+- text searching;
+- purchasing;
+- restocking.
+
+Use SQLAlchemy 2-style queries consistently with the rest of the project.
+Commit database changes safely and refresh entities before returning them.
+
+For case-insensitive filtering and searching, use SQLite-compatible SQLAlchemy expressions.
+
+==================================================
+D. TESTS — REQUIRED TDD COVERAGE
+==================================================
+
+Create a new test module:
+
+backend/tests/test_vehicle_inventory.py
+
+Do not modify existing test files except if a tiny shared helper is genuinely necessary. Prefer helpers inside this new module.
+
+The tests must create users through normal registration/login flows where possible. For creating an admin test user, follow the established test-database technique from test_auth_authorization.py. Never depend on the local production database or the seed script.
+
+Add clear, focused tests covering at least all of the following:
+
+1. An admin can create a valid vehicle and receives HTTP 201.
+2. A customer cannot create a vehicle and receives HTTP 403 with the exact admin detail.
+3. A public caller can list vehicles without a token.
+4. List filtering works for make, category, minimum price, maximum price, and in_stock.
+5. Pagination returns the expected items, total, page, and page_size.
+6. Public text search finds matching make, model, or category, case-insensitively.
+7. Public GET by id returns a vehicle; an unknown id returns the exact 404 detail.
+8. An admin can partially update a vehicle.
+9. A customer cannot update or delete a vehicle.
+10. An admin can delete a vehicle and receives HTTP 204; requesting it afterward returns 404.
+11. An authenticated customer can purchase an in-stock vehicle and stock decreases by exactly one.
+12. Purchase without a bearer token is rejected with HTTP 401.
+13. Purchasing an out-of-stock vehicle returns HTTP 400 with the exact out-of-stock detail and never makes quantity negative.
+14. An admin can restock a vehicle and stock increases correctly.
+15. A customer cannot restock a vehicle and receives HTTP 403.
+16. Invalid vehicle values are rejected, including zero/negative price, negative quantity, blank text fields, and a restock quantity of zero.
+
+Tests must remain concise, deterministic, typed where appropriate, and Ruff-compatible.
+
+==================================================
+E. CONSTRAINTS
+==================================================
+
+- Preserve all existing registration, login, JWT, /api/auth/me, /api/admin/me, and seed-admin behavior.
+- Do not change existing User or Vehicle database models unless absolutely required.
+- Do not create a frontend.
+- Do not add payment processing, order tables, reservations, image uploads, or any feature outside this phase.
+- Do not alter requirements unless a missing package is absolutely necessary; this phase should work with the existing dependencies.
+- Do not run Git commands and do not create commits.
+- Run the tests and Ruff when finished.
+- If a design detail is unclear, choose the smallest secure implementation consistent with these requirements.
+
+When complete, report:
+1. every changed or created file;
+2. the test and Ruff commands run;
+3. the outcome of those commands;
+4. any deliberate small design decisions.
