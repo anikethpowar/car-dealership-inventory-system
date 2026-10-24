@@ -152,3 +152,62 @@ Requirements:
 6. Keep standard Alembic offline and online migration behavior working.
 
 After completing the configuration, state the exact command to generate the first automatic migration and the exact command to apply it.
+
+
+You are helping build Phase 3 Part 1 of a Car Dealership Inventory System using test-driven development.
+
+Project root: ~/Incubyte
+Backend root: ~/Incubyte/backend
+
+Existing backend:
+- FastAPI application exists in app.main.
+- SQLAlchemy Base and get_db dependency exist in app.db.database.
+- User model exists in app.models.user.
+- Vehicle model exists in app.models.vehicle.
+- SQLite and Alembic are configured.
+- No authentication routes, schemas, services, or tests exist yet.
+
+Task: create ONLY the failing tests for customer registration. Do not implement any production authentication code.
+
+Create:
+
+1. backend/tests/conftest.py
+- Create a pytest fixture named client.
+- Use FastAPI TestClient.
+- Use a temporary file-based SQLite database created through pytest tmp_path. Do not use an in-memory database.
+- Create and drop all SQLAlchemy tables around each test using Base.metadata.
+- Override the FastAPI get_db dependency so tests use the temporary database, never backend/dealership.db.
+- Clear app.dependency_overrides after each test.
+
+2. backend/tests/test_auth_registration.py
+Create these tests:
+
+A. test_register_customer_success
+- Send POST request to /api/auth/register.
+- JSON request body:
+  {
+    "email": "customer@example.com",
+    "password": "SecurePass123!"
+  }
+- Expect HTTP 201.
+- Assert returned JSON contains:
+  - an integer id
+  - email equal to customer@example.com
+  - role equal to customer
+- Assert password and password_hash are never returned.
+
+B. test_register_duplicate_email_is_rejected
+- Register customer@example.com once.
+- Register the same email again.
+- Expect HTTP 409.
+- Expect JSON detail exactly:
+  "Email is already registered"
+
+Constraints:
+- Do not create app/api routes, schemas, services, security functions, or authentication implementation.
+- Do not modify models, migrations, database configuration, frontend, or requirements.txt.
+- Do not make Git commits.
+- The tests are expected to fail with 404 because the registration endpoint does not exist yet.
+- Keep test code clear and beginner-friendly.
+
+After creating the files, state the exact pytest command to run the tests.
