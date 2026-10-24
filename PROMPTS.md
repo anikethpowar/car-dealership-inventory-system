@@ -1322,3 +1322,177 @@ G. QUALITY AND SCOPE
   1. all changed/created files;
   2. results of lint and build;
   3. concise manual testing steps for customer purchase and admin inventory management.
+
+  You are working in an existing full-stack car dealership inventory system with a FastAPI backend and React/Vite/Tailwind frontend.
+
+Task: Phase 8 — integration-testing preparation, quality audit, and QA documentation.
+
+First inspect:
+- backend/tests/
+- backend/app/
+- frontend/src/
+- frontend/package.json
+- README.md
+- docs/
+- docs/screenshots/
+- PROMPTS.md
+
+This is a quality-assurance phase, not a feature-building phase.
+
+==================================================
+A. AUTOMATED QUALITY AUDIT
+==================================================
+
+Run these commands from their correct directories:
+
+Backend:
+- python -m pytest tests -q
+- python -m ruff check app tests scripts
+- python -m alembic current
+
+Frontend:
+- npm run lint
+- npm run build
+
+Report the exact outcomes.
+
+If a command fails:
+- inspect the actual cause;
+- make only the smallest focused correction necessary;
+- rerun the failed command and any relevant related checks;
+- do not make unrelated refactors or redesign the UI.
+
+Do not attempt to eliminate deprecation warnings that originate inside installed third-party packages unless they reflect an actual error in this project’s code. Report them clearly instead.
+
+==================================================
+B. CODE REVIEW CHECKLIST
+==================================================
+
+Review the current implementation without changing behavior unless you identify a genuine bug.
+
+Confirm:
+- frontend API communication uses VITE_API_BASE_URL and the shared Axios client;
+- tokens use sessionStorage rather than localStorage;
+- frontend does not decide real permissions; backend authorization remains required;
+- passwords, password hashes, JWTs, SECRET_KEY, and database URLs are never logged or shown in UI;
+- admin actions use the protected backend API routes;
+- customer purchase refreshes inventory from the API afterward;
+- purchase is atomic in the backend and cannot make stock negative;
+- empty/loading/error states exist for vehicle screens;
+- responsive Tailwind classes are used;
+- no unused Vite demo content remains;
+- no local database, .env file, node_modules, dist output, or Python virtual environment is introduced into Git tracking.
+
+==================================================
+C. CREATE QA DOCUMENTATION
+==================================================
+
+Create or update this file:
+
+docs/TESTING.md
+
+It must be concise, professional, and truthful. Include these sections:
+
+1. Automated checks
+A table listing these commands:
+- cd backend && python -m pytest tests -q
+- cd backend && python -m ruff check app tests scripts
+- cd frontend && npm run lint
+- cd frontend && npm run build
+
+Do not invent passing results. If you actually ran them successfully, record the result and date. If not, mark them as “Run locally before submission”.
+
+2. Manual end-to-end checklist
+Use a checklist/table with columns:
+- Scenario
+- Steps
+- Expected result
+- Result
+
+Include all of these scenarios:
+- Customer registration
+- Duplicate email rejection
+- Valid login
+- Invalid-password rejection
+- Customer dashboard access
+- Vehicle search
+- Filter by category and price
+- Customer purchase and refreshed stock
+- Sold-out purchase rejection
+- Admin login and admin route access
+- Customer blocked from admin action
+- Admin add vehicle
+- Admin edit vehicle
+- Admin restock vehicle
+- Admin delete vehicle
+- Invalid price/quantity validation
+- Unknown vehicle ID behavior
+- Desktop responsiveness
+- Mobile responsiveness
+
+For Result, use “Pending manual verification” unless a result can be truthfully established from a completed automated test. Do not falsely claim browser tests were performed.
+
+3. Screenshot evidence plan
+List these final screenshot files and what each must show:
+- docs/screenshots/customer-dashboard.png
+- docs/screenshots/customer-purchase-success.png
+- docs/screenshots/admin-inventory.png
+- docs/screenshots/mobile-dashboard.png
+
+State that screenshots must not show passwords, tokens, secrets, browser developer tools, or unfinished/error screens.
+
+4. Known non-blocking warnings
+If applicable, document third-party dependency deprecation warnings seen during tests, stating that the application tests still pass and the warnings do not originate from project code.
+
+==================================================
+D. SCOPE RULES
+==================================================
+
+- Do not modify backend features, API contracts, database models, Alembic migrations, or frontend feature behavior unless a real defect is found.
+- Do not add a testing framework or dependencies.
+- Do not add fake test results.
+- Do not create screenshots.
+- Do not run Git commands or create a commit.
+- Keep documentation easy for a beginner evaluator to follow.
+
+When complete, report:
+1. commands run and results;
+2. changed files;
+3. any real defect fixed, or explicitly state that none was found;
+4. any non-blocking warnings.
+
+Update only docs/TESTING.md for accuracy and polish. Do not modify application code, tests, screenshots, package files, or backend files. Do not run Git commands.
+
+Use these verified facts:
+
+Automated checks run successfully on October 25, 2026:
+- Backend pytest: 28 passed, 2 non-blocking third-party deprecation warnings.
+- Backend Ruff: all checks passed.
+- Alembic: bcb453eca097 (head).
+- Frontend ESLint: passed.
+- Frontend production build: passed.
+
+Manual browser checks successfully completed on October 25, 2026:
+- Customer registration succeeded after both FastAPI and Vite servers were running.
+- Customer login succeeded.
+- Customer dashboard displayed the authenticated customer email.
+- Vehicle keyword search for Toyota worked.
+- Customer purchase succeeded; success alert appeared and Toyota stock refreshed from 5 to 4.
+- Admin login and protected admin route access succeeded.
+- Admin add, edit, restock, and delete actions were successfully exercised.
+- Desktop and mobile responsive views were checked.
+- Final screenshots now exist:
+  - docs/screenshots/customer-dashboard.png
+  - docs/screenshots/customer-purchase-success.png
+  - docs/screenshots/admin-inventory.png
+  - docs/screenshots/mobile-dashboard.png
+
+Required edits:
+1. Mark the completed manual scenarios above as “Verified manually on October 25, 2026”.
+2. Leave only scenarios that were not manually exercised as automated-test verification, without inventing specific test function names. Use wording such as “Covered by the automated backend test suite”.
+3. Keep expected outcomes technically correct and concise.
+4. Change “Screenshot Evidence Plan” to “Screenshot Evidence”.
+5. State that the four listed screenshots were captured from the finished application.
+6. Correct all obvious spacing and wording defects, including “fromthe”, “stockbadges”, and “withoutoverflow”.
+7. Preserve the known non-blocking warnings section, but do not claim that project code caused the warnings.
+8. Do not make up results for any unverified browser behavior.
