@@ -811,3 +811,41 @@ When complete, report:
 2. the test and Ruff commands run;
 3. the outcome of those commands;
 4. any deliberate small design decisions.
+
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: make the existing vehicle purchase operation safe against concurrent purchases.
+
+First inspect:
+- backend/app/services/vehicle_service.py
+- backend/app/api/routes/vehicles.py
+- backend/tests/test_vehicle_inventory.py
+- the existing Vehicle SQLAlchemy model
+
+Problem:
+The current purchase_vehicle implementation does a read-check-decrement-commit sequence. Two simultaneous purchase requests could both see quantity 1 before either commits. Replace that implementation with an atomic database update.
+
+Required behavior:
+- Update only purchase_vehicle in backend/app/services/vehicle_service.py, plus narrowly related tests if truly needed.
+- Use one SQLAlchemy conditional UPDATE statement that reduces quantity by exactly 1 only where:
+  - Vehicle.id equals vehicle_id; and
+  - Vehicle.quantity is greater than 0.
+- The decrement must be performed by the database expression itself, not by reading quantity and subtracting in Python.
+- If the conditional update affects one row:
+  - commit the transaction;
+  - load and return the updated Vehicle.
+- If it affects zero rows:
+  - determine whether the vehicle does not exist:
+    - then raise HTTP 404 with exactly "Vehicle not found";
+  - otherwise it exists but stock is zero:
+    - raise HTTP 400 with exactly "Vehicle is out of stock".
+- If any database error occurs during the write, roll back the session before re-raising.
+- Preserve all route paths, response shapes, authorization behavior, and existing API behavior.
+- Do not modify models, migrations, frontend files, authentication code, or unrelated services.
+- Do not run Git commands or create a commit.
+- Keep the code typed and Ruff-compatible.
+
+Add or improve a focused test only if it materially verifies a missing purchase edge case. Keep all existing tests passing.
+
+When complete, report changed files and commands I should run.

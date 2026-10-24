@@ -672,3 +672,93 @@ def test_invalid_vehicle_values_rejected(client: TestClient) -> None:
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert res10.status_code == 422
+
+
+def test_concurrent_purchases_only_allow_available_stock(client: TestClient) -> None:
+    import threading
+
+    from fastapi import HTTPException
+
+    from app.services.vehicle_service import purchase_vehicle
+
+    admin_token = get_admin_token(client)
+    create_res = client.post(
+        "/api/vehicles",
+        json={
+            "make": "Porsche",
+            "model": "911",
+            "category": "Coupe",
+            "price": 120000.00,
+            "quantity": 1,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    v_id = create_res.json()["id"]
+
+    results: list[tuple[str, int | str]] = []
+
+    def attempt_purchase() -> None:
+        db_gen = app.dependency_overrides[get_db]()
+        db = next(db_gen)
+        try:
+            res = purchase_vehicle(db, v_id)
+            results.append(("success", res.quantity))
+        except HTTPException as exc:
+            results.append(("error", exc.detail))
+        finally:
+            db.close()
+
+    threads = [threading.Thread(target=attempt_purchase) for _ in range(5)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    successes = [r for r in results if r[0] == "success"]
+    errors = [r for r in results if r[0] == "error"]
+
+    assert len(successes) == 1
+    assert successes[0][1] == 0
+    assert len(errors) == 4
+    for err in errors:
+        assert err[1] == "Vehicle is out of stock"
+
+    # Confirm final stock is 0 and never became negative
+    get_res = client.get(f"/api/vehicles/{v_id}")
+    assert get_res.json()["quantity"] == 0
+
+
+def test_purchase_rolls_back_on_db_error(client: TestClient) -> None:
+    from unittest.mock import patch
+
+    import pytest
+    from sqlalchemy.exc import OperationalError
+
+    from app.services.vehicle_service import purchase_vehicle
+
+    admin_token = get_admin_token(client)
+    create_res = client.post(
+        "/api/vehicles",
+        json={
+            "make": "BMW",
+            "model": "M3",
+            "category": "Sedan",
+            "price": 75000.00,
+            "quantity": 1,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    v_id = create_res.json()["id"]
+
+    db_gen = app.dependency_overrides[get_db]()
+    db = next(db_gen)
+    try:
+        with (
+            patch.object(db, "commit", side_effect=OperationalError("mock", {}, None)),
+            patch.object(db, "rollback", wraps=db.rollback) as mock_rollback,
+            pytest.raises(OperationalError),
+        ):
+            purchase_vehicle(db, v_id)
+        mock_rollback.assert_called_once()
+    finally:
+        db.close()

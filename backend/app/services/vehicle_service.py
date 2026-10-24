@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.models.vehicle import Vehicle
@@ -129,17 +129,33 @@ def search_vehicles(
 
 
 def purchase_vehicle(db: Session, vehicle_id: int) -> Vehicle:
-    """Reduce stock by 1 for an in-stock vehicle."""
-    vehicle = get_vehicle_by_id(db, vehicle_id)
-    if vehicle.quantity <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Vehicle is out of stock",
-        )
-    vehicle.quantity -= 1
-    db.commit()
-    db.refresh(vehicle)
-    return vehicle
+    """Atomically reduce stock by 1 for an in-stock vehicle."""
+    stmt = (
+        update(Vehicle)
+        .where(Vehicle.id == vehicle_id, Vehicle.quantity > 0)
+        .values(quantity=Vehicle.quantity - 1)
+    )
+    try:
+        result = db.execute(stmt)
+        if result.rowcount == 0:
+            exists = db.scalar(select(Vehicle.id).where(Vehicle.id == vehicle_id))
+            if exists is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Vehicle not found",
+                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Vehicle is out of stock",
+            )
+        db.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise
+
+    return get_vehicle_by_id(db, vehicle_id)
 
 
 def restock_vehicle(db: Session, vehicle_id: int, quantity: int) -> Vehicle:
@@ -149,4 +165,3 @@ def restock_vehicle(db: Session, vehicle_id: int, quantity: int) -> Vehicle:
     db.commit()
     db.refresh(vehicle)
     return vehicle
-
