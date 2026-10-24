@@ -387,3 +387,72 @@ Constraints:
 - Keep formatting compatible with ruff.
 
 When complete, report the files changed and any commands I should run.
+
+You are working in the existing FastAPI backend for a car dealership inventory system.
+
+Task: Phase 3, Part 5A — write tests that specify JWT-protected identity and admin role behavior only. This is the RED step of TDD. Do not implement production authorization code yet.
+
+First inspect the existing project, especially:
+- backend/tests/conftest.py
+- backend/app/models/user.py
+- backend/app/core/security.py
+- existing registration and login tests
+
+Create exactly one test file:
+backend/tests/test_auth_authorization.py
+
+Write these tests:
+
+1. test_me_requires_authentication
+- Send GET /api/auth/me without an Authorization header.
+- Expect HTTP 401.
+- Do not require an exact error-detail string because FastAPI may provide the standard authentication message.
+
+2. test_me_rejects_invalid_bearer_token
+- Send GET /api/auth/me with this header:
+  Authorization: Bearer invalid-token
+- Expect HTTP 401.
+- Assert the JSON contains a non-empty "detail" field.
+
+3. test_me_returns_current_authenticated_customer
+- Register a customer through POST /api/auth/register:
+  email: customer@example.com
+  password: SecurePass123!
+- Log in through POST /api/auth/login with the same credentials.
+- Read access_token from the successful response.
+- Send GET /api/auth/me with:
+  Authorization: Bearer <access_token>
+- Expect HTTP 200.
+- Assert the response contains:
+  - id as an integer
+  - email exactly "customer@example.com"
+  - role exactly "customer"
+- Assert the response does not contain password or password_hash.
+
+4. test_admin_route_rejects_customer
+- Register and log in a normal customer as above.
+- Send GET /api/admin/me with that customer’s bearer token.
+- Expect HTTP 403.
+- Assert the JSON detail is exactly:
+  "Admin access required"
+
+5. test_admin_route_allows_admin
+- Create a real database user with:
+  - email: admin@example.com
+  - a securely hashed password
+  - role: admin
+- Use the existing temporary test database and its fixture conventions; do not use the production dealership.db file.
+- Log in with that admin’s email and password through POST /api/auth/login.
+- Send GET /api/admin/me with the returned bearer token.
+- Expect HTTP 200.
+- Assert the response contains:
+  - email exactly "admin@example.com"
+  - role exactly "admin"
+- Assert there is no password or password_hash in the response.
+
+Constraints:
+- Do not modify any production application code.
+- Do not change existing test files, models, migrations, requirements, or frontend files.
+- Do not create protected dependencies, routes, seed scripts, or admin setup yet.
+- Do not run Git commands and do not create commits.
+- Keep tests readable, typed, and Ruff-compatible.
