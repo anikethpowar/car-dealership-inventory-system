@@ -211,3 +211,65 @@ Constraints:
 - Keep test code clear and beginner-friendly.
 
 After creating the files, state the exact pytest command to run the tests.
+
+You are helping build Phase 3 Part 2 of a Car Dealership Inventory System.
+
+Project root: ~/Incubyte
+Backend root: ~/Incubyte/backend
+
+TDD status:
+- backend/tests/test_auth_registration.py already exists.
+- It contains two failing tests for POST /api/auth/register.
+- Do not modify those tests.
+- The required behavior is:
+  1. Register customer@example.com with SecurePass123! returns HTTP 201.
+  2. Response includes id, email, and role="customer".
+  3. Response never includes password or password_hash.
+  4. Registering the same email again returns HTTP 409 with:
+     {"detail": "Email is already registered"}
+
+Task: implement only customer registration so the existing tests pass.
+
+Create:
+
+1. backend/app/schemas/auth.py
+- Registration request schema:
+  - email must use EmailStr.
+  - password must have a minimum length of 8.
+- Safe user response schema:
+  - id: int
+  - email: EmailStr
+  - role: str
+- Configure Pydantic v2 from_attributes support.
+
+2. backend/app/core/security.py
+- Use pwdlib PasswordHash.recommended().
+- Create a hash_password(password: str) -> str function.
+- Never log or return plain-text passwords.
+
+3. backend/app/services/auth_service.py
+- Create a small function that registers a customer.
+- Check whether the email already exists.
+- Store a password hash, not the plain password.
+- Store the default role as customer.
+- Raise an appropriate error or return a clear result that lets the route produce the required HTTP 409 response.
+
+4. backend/app/api/routes/auth.py
+- Create an APIRouter with prefix /api/auth and tag Auth.
+- Create POST /register.
+- Use the existing get_db dependency.
+- Return HTTP 201 for successful registration.
+- Return the safe user response schema only.
+- For duplicate email, return HTTP 409 with exact detail:
+  "Email is already registered"
+
+5. Update backend/app/main.py only as needed to include the auth router.
+
+Constraints:
+- Do not modify existing tests.
+- Do not implement login, JWT token generation, protected endpoints, admin roles, vehicles, frontend changes, or Alembic migrations yet.
+- Do not change database models.
+- Do not make Git commits.
+- Keep code beginner-friendly, type annotated, and clean.
+
+After implementation, state the exact commands to run the registration tests and Ruff.

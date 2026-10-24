@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.api.routes.auth import router as auth_router
 from app.core.config import settings
 from app.db.database import get_db
 
@@ -21,6 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+
 
 @app.get("/api/health")
 def health_check(db: Annotated[Session, Depends(get_db)]):
@@ -32,4 +35,3 @@ def health_check(db: Annotated[Session, Depends(get_db)]):
             detail="Database connection failed",
         ) from exc
     return {"status": "ok"}
-
